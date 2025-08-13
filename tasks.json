@@ -10,16 +10,9 @@
     {
       "id": 2,
       "description": "Studiare Go",
-      "status": "todo",
+      "status": "[ ]",
       "createdAt": "2025-08-13T16:29:56+02:00",
-      "updatedAt": "2025-08-13T16:29:56+02:00"
-    },
-    {
-      "id": 3,
-      "description": "Completare",
-      "status": "todo",
-      "createdAt": "2025-08-13T18:01:52+02:00",
-      "updatedAt": "2025-08-13T18:01:52+02:00"
+      "updatedAt": "2025-08-13T21:09:47+02:00"
     }
   ]
 }

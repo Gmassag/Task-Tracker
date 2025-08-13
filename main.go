@@ -100,13 +100,13 @@ func generateID(tasks []Task) int {
 }
 
 // add a new task to the list
-func handleAdd() {	
+func handleAdd() {
 	if len(os.Args) < 3 {
 		fmt.Println("Please provide a description for the task.")
 		return
 	}
 
-	description := os.Args[2];
+	description := os.Args[2]
 
 	taskList, err := loadTasks()
 	if err != nil {
@@ -123,7 +123,7 @@ func handleAdd() {
 		CreatedAt:   now,
 		UpdatedAt:   now,
 	}
-		taskList.Tasks = append(taskList.Tasks, newTask)
+	taskList.Tasks = append(taskList.Tasks, newTask)
 
 	err = saveTasks(taskList)
 	if err != nil {
@@ -134,32 +134,48 @@ func handleAdd() {
 	fmt.Printf("Task added succesfully (ID: %d)\n", newTask.ID)
 }
 
-// set the status from the "status" parameter and returns the task
-func setTaskStatus(id int, status string) *Task{
-	taskList, err := loadTasks();
+// deletes the task with the given id
+func deleteTask(id int) error {
+	taskList, err := loadTasks()
 	if err != nil {
-		fmt.Printf("Error during tasks's loading: %v\n", err);
+		return err
 	}
 
 	for i := range taskList.Tasks {
 		if taskList.Tasks[i].ID == id {
-			taskList.Tasks[i].Status = getStatusIcon(status);
-			taskList.Tasks[i].UpdatedAt = time.Now().Format(time.RFC3339);
+			taskList.Tasks = append(taskList.Tasks[:i], taskList.Tasks[i+1:]...)
+			return saveTasks(taskList)
+		}
+	}
+	return fmt.Errorf("task not found")
+	return nil
+}
+
+// set the status from the "status" parameter and returns the task
+func setTaskStatus(id int, status string) *Task {
+	taskList, err := loadTasks()
+	if err != nil {
+		fmt.Printf("Error during tasks's loading: %v\n", err)
+	}
+
+	for i := range taskList.Tasks {
+		if taskList.Tasks[i].ID == id {
+			taskList.Tasks[i].Status = getStatusIcon(status)
+			taskList.Tasks[i].UpdatedAt = time.Now().Format(time.RFC3339)
 
 			if err := saveTasks(taskList); err != nil {
 				fmt.Printf("Error saving tasks: %v\n", err)
 			}
 
-
-			return &taskList.Tasks[i];
+			return &taskList.Tasks[i]
 		}
 	}
 
-	fmt.Printf("No task found with ID: %d", id);
-	return nil;
+	fmt.Printf("No task found with ID: %d", id)
+	return nil
 }
 
-// print all the task as a list 
+// print all the task as a list
 func handleList() {
 	taskList, err := loadTasks()
 	if err != nil {
@@ -203,34 +219,80 @@ func getStatusIcon(status string) string {
 }
 
 func handleUpdate() {
-	//TODO
+	if len(os.Args) < 4 {
+		fmt.Println("You must input a valid ID and description.")
+		return
+	}
+
+	id, err := strconv.ParseInt(os.Args[2], 10, 64)
+	if err != nil {
+		fmt.Printf("Input a valid ID")
+		return
+	}
+
+	description := os.Args[3]
+	task := setTaskStatus(int(id), "todo")
+	if task == nil {
+		return
+	}
+
+	task.Description = description
+	fmt.Printf("Task updated: %s\n", task.Description)
 }
 
 func handleDelete() {
-	//TODO
-}
-
-func handleMarkDone() {
-
-	fmt.Printf("w2222");
 	if len(os.Args) < 3 {
 		fmt.Println("You must input a valid ID.")
 		return
 	}
 
-	id, err := strconv.ParseInt(os.Args[2], 10, 64); 
+	id, err := strconv.ParseInt(os.Args[2], 10, 64)
 	if err != nil {
-		fmt.Printf("Input a valid ID");
-		return;
+		fmt.Printf("Input a valid ID")
+		return
 	}
 
-	fmt.Printf("test");
+	err = deleteTask(int(id))
+	if err != nil {
+		fmt.Printf("Error deleting task: %v\n", err)
+		return
+	}
 
-	task := setTaskStatus(int(id), "done");
-	
-	fmt.Println("Task marked as done: %s" +  task.Description);
+	fmt.Printf("Task marked as deleted with id: %d\n", id)
 }
 
+// marks done a task
+func handleMarkDone() {
+	if len(os.Args) < 3 {
+		fmt.Println("You must input a valid ID.")
+		return
+	}
+
+	id, err := strconv.ParseInt(os.Args[2], 10, 64)
+	if err != nil {
+		fmt.Printf("Input a valid ID")
+		return
+	}
+
+	task := setTaskStatus(int(id), "done")
+
+	fmt.Println("Task marked as done: " + task.Description)
+}
+
+// marks in-progress a task
 func handleMarkInProgress() {
-	//TODO
+	if len(os.Args) < 3 {
+		fmt.Println("You must input a valid ID.")
+		return
+	}
+
+	id, err := strconv.ParseInt(os.Args[2], 10, 64)
+	if err != nil {
+		fmt.Printf("Input a valid ID")
+		return
+	}
+
+	task := setTaskStatus(int(id), "in-progress")
+
+	fmt.Println("Task marked as in-progress: " + task.Description)
 }
