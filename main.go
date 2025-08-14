@@ -148,7 +148,6 @@ func deleteTask(id int) error {
 		}
 	}
 	return fmt.Errorf("task not found")
-	return nil
 }
 
 // set the status from the "status" parameter and returns the task
@@ -156,11 +155,12 @@ func setTaskStatus(id int, status string) *Task {
 	taskList, err := loadTasks()
 	if err != nil {
 		fmt.Printf("Error during tasks's loading: %v\n", err)
+		return nil
 	}
 
 	for i := range taskList.Tasks {
 		if taskList.Tasks[i].ID == id {
-			taskList.Tasks[i].Status = getStatusIcon(status)
+			taskList.Tasks[i].Status = status
 			taskList.Tasks[i].UpdatedAt = time.Now().Format(time.RFC3339)
 
 			if err := saveTasks(taskList); err != nil {
@@ -275,8 +275,10 @@ func handleMarkDone() {
 	}
 
 	task := setTaskStatus(int(id), "done")
+	if task != nil {
+		fmt.Println("Task marked as done: " + task.Description)
+	}
 
-	fmt.Println("Task marked as done: " + task.Description)
 }
 
 // marks in-progress a task
@@ -293,6 +295,7 @@ func handleMarkInProgress() {
 	}
 
 	task := setTaskStatus(int(id), "in-progress")
-
-	fmt.Println("Task marked as in-progress: " + task.Description)
+	if task != nil {
+		fmt.Println("Task marked as in-progress: " + task.Description)
+	}
 }
